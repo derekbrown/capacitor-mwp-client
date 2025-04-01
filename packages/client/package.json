@@ -1,5 +1,5 @@
 {
-  "name": "capacitor-mwp-client/client",
+  "name": "@capacitor-mwp-client/client",
   "version": "1.0.0",
   "description": "Capacitor Client SDK for the Mobile Wallet Protocol",
   "keywords": [

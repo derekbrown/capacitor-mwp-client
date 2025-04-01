@@ -1,5 +1,5 @@
 {
-  "name": "capacitor-mwp-client/wagmi-connectors",
+  "name": "@capacitor-mwp-client/wagmi-connectors",
   "version": "1.0.1",
   "description": "Mobile Wallet Protocol connectors for Wagmi",
   "keywords": [
@@ -34,7 +34,7 @@
   },
   "peerDependencies": {
     "@wagmi/core": "^2.13.4",
-    "capacitor-mwp-client": "*",
+    "@capacitor-mwp-client/client": "*",
     "typescript": ">=5.0.4",
     "viem": "^2.19.4"
   },
