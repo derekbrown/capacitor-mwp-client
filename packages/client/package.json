@@ -1,10 +1,12 @@
 {
-  "name": "@mobile-wallet-protocol/client",
+  "name": "capacitor-mwp-client",
   "version": "1.0.0",
-  "description": "Client SDK for the Mobile Wallet Protocol",
+  "description": "Capacitor Client SDK for the Mobile Wallet Protocol",
   "keywords": [
-    "react-native",
-    "expo",
+    "capacitor",
+    "ionic",
+    "next.js",
+    "capacitor.js",
     "eth",
     "ethereum",
     "wallet",
@@ -17,7 +19,7 @@
   "sideEffects": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/MobileWalletProtocol/react-native-client.git",
+    "url": "https://github.com/derekbrown/capacitor-mwp-client.git",
     "directory": "packages/client"
   },
   "author": "Coinbase, Inc.",
@@ -36,14 +38,13 @@
     "@noble/curves": "^1.4.2",
     "@noble/hashes": "^1.4.0",
     "eventemitter3": "^5.0.1",
-    "fflate": "^0.8.2"
+    "fflate": "^0.8.2",
+    "jest-environment-jsdom": "^29.7.0"
   },
   "peerDependencies": {
-    "@react-native-async-storage/async-storage": "*",
-    "expo": "*",
-    "expo-web-browser": "*",
-    "react": "*",
-    "react-native": "*"
+    "@capacitor/inappbrowser": "*",
+    "@capacitor/preferences": "*",
+    "react": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.22.9",
@@ -51,14 +52,15 @@
     "@babel/plugin-transform-react-jsx": "^7.22.5",
     "@babel/preset-env": "^7.22.9",
     "@babel/preset-typescript": "^7.22.5",
+    "@capacitor/core": "^7.0.1",
+    "@capacitor/inappbrowser": "^2.0.1",
+    "@capacitor/preferences": "^7.0.0",
     "@peculiar/webcrypto": "^1.4.3",
-    "@react-native-async-storage/async-storage": "^1.24.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "14.3.1",
     "@types/jest": "^27.5.2",
     "@types/node": "^14.18.54",
     "@types/react": "^18.0.25",
-    "@types/react-native": "^0.70.6",
     "@typescript-eslint/eslint-plugin": "^6.2.0",
     "@typescript-eslint/parser": "^6.2.0",
     "babel-jest": "^27.5.1",
@@ -67,19 +69,18 @@
     "eslint-plugin-prettier": "^5.0.0",
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^4.6.2",
-    "eslint-plugin-react-native": "^4.1.0",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-unused-imports": "^3.0.0",
     "expo-web-browser": "^13.0.3",
-    "jest": "^27.5.1",
-    "jest-chrome": "^0.7.2",
+    "jest": "^29.0.0",
+    "jest-chrome": "^0.8.0",
     "jest-websocket-mock": "^2.4.0",
     "nodemon": "^3.1.0",
     "prettier": "^3.0.0",
-    "ts-jest": "^27.1.5",
+    "ts-jest": "^29.3.1",
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.8",
     "tslib": "^2.6.0",
-    "typescript": "^5.1.6"
+    "typescript": "^5.8.2"
   }
 }

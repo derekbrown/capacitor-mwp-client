@@ -1,5 +1,5 @@
 {
-    "repository": "https://github.com/MobileWalletProtocol/react-native-client.git",
+    "repository": "https://github.com/derekbrown/capacitor-mwp-client.git",
     "author": "Coinbase, Inc.",
     "license": "Apache-2.0",
     "private": true,

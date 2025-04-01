@@ -1,29 +1,33 @@
-import { KeyManager } from './components/key/KeyManager';
+import { KeyManager } from "./components/key/KeyManager";
 import {
   decryptContent,
   encryptContent,
   exportKeyToHexString,
   importKeyFromHexString,
-} from ':core/cipher/cipher';
-import { standardErrors } from ':core/error';
-import { RPCRequestMessage, RPCResponse, RPCResponseMessage } from ':core/message';
-import { AppMetadata, RequestArguments } from ':core/provider/interface';
-import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
-import { AddressString } from ':core/type';
-import { ensureIntNumber, hexStringFromNumber } from ':core/type/util';
+} from ":core/cipher/cipher";
+import { standardErrors } from ":core/error";
+import {
+  RPCRequestMessage,
+  RPCResponse,
+  RPCResponseMessage,
+} from ":core/message";
+import { AppMetadata, RequestArguments } from ":core/provider/interface";
+import { ScopedPreferencesStorage } from ":core/storage/ScopedPreferencesStorage";
+import { AddressString } from ":core/type";
+import { ensureIntNumber, hexStringFromNumber } from ":core/type/util";
 
-const ACCOUNTS_KEY = 'accounts';
-const ACTIVE_CHAIN_STORAGE_KEY = 'activeChain';
-const AVAILABLE_CHAINS_STORAGE_KEY = 'availableChains';
-const WALLET_CAPABILITIES_STORAGE_KEY = 'walletCapabilities';
-import { postRequestToWallet } from './components/communication/postRequestToWallet';
-import { LIB_VERSION } from './version';
+const ACCOUNTS_KEY = "accounts";
+const ACTIVE_CHAIN_STORAGE_KEY = "activeChain";
+const AVAILABLE_CHAINS_STORAGE_KEY = "availableChains";
+const WALLET_CAPABILITIES_STORAGE_KEY = "walletCapabilities";
+import { postRequestToWallet } from "./components/communication/postRequestToWallet";
+import { LIB_VERSION } from "./version";
 import {
   appendMWPResponsePath,
   checkErrorForInvalidRequestArgs,
   fetchRPCRequest,
-} from ':core/util/utils';
-import { Wallet } from ':core/wallet';
+} from ":core/util/utils";
+import { Wallet } from ":core/wallet";
 
 type Chain = {
   id: number;
@@ -39,7 +43,7 @@ export class MWPClient {
   private readonly metadata: AppMetadata;
   private readonly wallet: Wallet;
   private readonly keyManager: KeyManager;
-  private readonly storage: ScopedAsyncStorage;
+  private readonly storage: ScopedPreferencesStorage;
 
   private accounts: AddressString[];
   private chain: Chain;
@@ -47,13 +51,13 @@ export class MWPClient {
   private constructor({ metadata, wallet }: MWPClientOptions) {
     this.metadata = {
       ...metadata,
-      name: metadata.name || 'Dapp',
+      name: metadata.name || "Dapp",
       customScheme: appendMWPResponsePath(metadata.customScheme),
     };
 
     this.wallet = wallet;
     this.keyManager = new KeyManager({ wallet: this.wallet });
-    this.storage = new ScopedAsyncStorage(this.wallet.name, 'MWPClient');
+    this.storage = new ScopedPreferencesStorage(this.wallet.name, "MWPClient");
 
     // default values
     this.accounts = [];
@@ -67,12 +71,15 @@ export class MWPClient {
   }
 
   private async initialize() {
-    const storedAccounts = await this.storage.loadObject<AddressString[]>(ACCOUNTS_KEY);
+    const storedAccounts =
+      await this.storage.loadObject<AddressString[]>(ACCOUNTS_KEY);
     if (storedAccounts) {
       this.accounts = storedAccounts;
     }
 
-    const storedChain = await this.storage.loadObject<Chain>(ACTIVE_CHAIN_STORAGE_KEY);
+    const storedChain = await this.storage.loadObject<Chain>(
+      ACTIVE_CHAIN_STORAGE_KEY,
+    );
     if (storedChain) {
       this.chain = storedChain;
     }
@@ -89,7 +96,7 @@ export class MWPClient {
 
     const handshakeMessage = await this.createRequestMessage({
       handshake: {
-        method: 'eth_requestAccounts',
+        method: "eth_requestAccounts",
         params: {
           appName: this.metadata.name,
           appLogoUrl: this.metadata.logoUrl,
@@ -99,18 +106,21 @@ export class MWPClient {
     const response: RPCResponseMessage = await postRequestToWallet(
       handshakeMessage,
       this.metadata.customScheme,
-      this.wallet
+      this.wallet,
     );
 
     // store peer's public key
-    if ('failure' in response.content) throw response.content.failure;
-    const peerPublicKey = await importKeyFromHexString('public', response.sender);
+    if ("failure" in response.content) throw response.content.failure;
+    const peerPublicKey = await importKeyFromHexString(
+      "public",
+      response.sender,
+    );
     await this.keyManager.setPeerPublicKey(peerPublicKey);
 
     const decrypted = await this.decryptResponseMessage(response);
 
     const result = decrypted.result;
-    if ('error' in result) throw result.error;
+    if ("error" in result) throw result.error;
 
     const accounts = result.value as AddressString[];
     this.accounts = accounts;
@@ -127,37 +137,38 @@ export class MWPClient {
     checkErrorForInvalidRequestArgs(request);
 
     switch (request.method) {
-      case 'eth_requestAccounts':
+      case "eth_requestAccounts":
         return this.accounts;
-      case 'eth_accounts':
+      case "eth_accounts":
         return this.accounts;
-      case 'eth_coinbase':
+      case "eth_coinbase":
         return this.accounts[0];
-      case 'net_version':
+      case "net_version":
         return this.chain.id;
-      case 'eth_chainId':
+      case "eth_chainId":
         return hexStringFromNumber(this.chain.id);
-      case 'wallet_getCapabilities':
+      case "wallet_getCapabilities":
         return this.storage.loadObject(WALLET_CAPABILITIES_STORAGE_KEY);
-      case 'wallet_switchEthereumChain':
+      case "wallet_switchEthereumChain":
         return this.handleSwitchChainRequest(request);
-      case 'eth_ecRecover':
-      case 'personal_sign':
-      case 'personal_ecRecover':
-      case 'eth_signTransaction':
-      case 'eth_sendTransaction':
-      case 'eth_signTypedData_v1':
-      case 'eth_signTypedData_v3':
-      case 'eth_signTypedData_v4':
-      case 'eth_signTypedData':
-      case 'wallet_addEthereumChain':
-      case 'wallet_watchAsset':
-      case 'wallet_sendCalls':
-      case 'wallet_showCallsStatus':
-      case 'wallet_grantPermissions':
+      case "eth_ecRecover":
+      case "personal_sign":
+      case "personal_ecRecover":
+      case "eth_signTransaction":
+      case "eth_sendTransaction":
+      case "eth_signTypedData_v1":
+      case "eth_signTypedData_v3":
+      case "eth_signTypedData_v4":
+      case "eth_signTypedData":
+      case "wallet_addEthereumChain":
+      case "wallet_watchAsset":
+      case "wallet_sendCalls":
+      case "wallet_showCallsStatus":
+      case "wallet_grantPermissions":
         return this.sendRequestToPopup(request);
       default:
-        if (!this.chain.rpcUrl) throw standardErrors.rpc.internal('No RPC URL set for chain');
+        if (!this.chain.rpcUrl)
+          throw standardErrors.rpc.internal("No RPC URL set for chain");
         return fetchRPCRequest(request, this.chain.rpcUrl);
     }
   }
@@ -167,7 +178,7 @@ export class MWPClient {
     const decrypted = await this.decryptResponseMessage(response);
 
     const result = decrypted.result;
-    if ('error' in result) throw result.error;
+    if ("error" in result) throw result.error;
 
     return result.value;
   }
@@ -206,11 +217,13 @@ export class MWPClient {
     return popupResult;
   }
 
-  private async sendEncryptedRequest(request: RequestArguments): Promise<RPCResponseMessage> {
+  private async sendEncryptedRequest(
+    request: RequestArguments,
+  ): Promise<RPCResponseMessage> {
     const sharedSecret = await this.keyManager.getSharedSecret();
     if (!sharedSecret) {
       throw standardErrors.provider.unauthorized(
-        'No valid session found, try requestAccounts before other methods'
+        "No valid session found, try requestAccounts before other methods",
       );
     }
 
@@ -219,17 +232,24 @@ export class MWPClient {
         action: request,
         chainId: this.chain.id,
       },
-      sharedSecret
+      sharedSecret,
     );
     const message = await this.createRequestMessage({ encrypted });
 
-    return postRequestToWallet(message, this.metadata.customScheme, this.wallet);
+    return postRequestToWallet(
+      message,
+      this.metadata.customScheme,
+      this.wallet,
+    );
   }
 
   private async createRequestMessage(
-    content: RPCRequestMessage['content']
+    content: RPCRequestMessage["content"],
   ): Promise<RPCRequestMessage> {
-    const publicKey = await exportKeyToHexString('public', await this.keyManager.getOwnPublicKey());
+    const publicKey = await exportKeyToHexString(
+      "public",
+      await this.keyManager.getOwnPublicKey(),
+    );
     return {
       id: crypto.randomUUID(),
       sender: publicKey,
@@ -240,20 +260,25 @@ export class MWPClient {
     };
   }
 
-  private async decryptResponseMessage(message: RPCResponseMessage): Promise<RPCResponse> {
+  private async decryptResponseMessage(
+    message: RPCResponseMessage,
+  ): Promise<RPCResponse> {
     const content = message.content;
 
     // throw protocol level error
-    if ('failure' in content) {
+    if ("failure" in content) {
       throw content.failure;
     }
 
     const sharedSecret = await this.keyManager.getSharedSecret();
     if (!sharedSecret) {
-      throw standardErrors.provider.unauthorized('Invalid session');
+      throw standardErrors.provider.unauthorized("Invalid session");
     }
 
-    const response: RPCResponse = await decryptContent(content.encrypted, sharedSecret);
+    const response: RPCResponse = await decryptContent(
+      content.encrypted,
+      sharedSecret,
+    );
 
     const availableChains = response.data?.chains;
     if (availableChains) {
@@ -267,15 +292,22 @@ export class MWPClient {
 
     const walletCapabilities = response.data?.capabilities;
     if (walletCapabilities) {
-      await this.storage.storeObject(WALLET_CAPABILITIES_STORAGE_KEY, walletCapabilities);
+      await this.storage.storeObject(
+        WALLET_CAPABILITIES_STORAGE_KEY,
+        walletCapabilities,
+      );
     }
 
     return response;
   }
 
-  private async updateChain(chainId: number, newAvailableChains?: Chain[]): Promise<boolean> {
+  private async updateChain(
+    chainId: number,
+    newAvailableChains?: Chain[],
+  ): Promise<boolean> {
     const chains =
-      newAvailableChains ?? (await this.storage.loadObject<Chain[]>(AVAILABLE_CHAINS_STORAGE_KEY));
+      newAvailableChains ??
+      (await this.storage.loadObject<Chain[]>(AVAILABLE_CHAINS_STORAGE_KEY));
     const chain = chains?.find((chain) => chain.id === chainId);
     if (!chain) return false;
 

@@ -3,40 +3,40 @@ import {
   exportKeyToHexString,
   generateKeyPair,
   importKeyFromHexString,
-} from ':core/cipher/cipher';
-import { CryptoKey } from ':core/cipher/types';
-import { ScopedAsyncStorage } from ':core/storage/ScopedAsyncStorage';
-import { Wallet } from ':core/wallet/';
+} from ":core/cipher/cipher";
+import { CryptoKey } from ":core/cipher/types";
+import { ScopedPreferencesStorage } from ":core/storage/ScopedPreferencesStorage";
+import { Wallet } from ":core/wallet/";
 
 interface StorageItem {
   storageKey: string;
-  keyType: 'public' | 'private';
+  keyType: "public" | "private";
 }
 const OWN_PRIVATE_KEY = {
-  storageKey: 'ownPrivateKey',
-  keyType: 'private',
+  storageKey: "ownPrivateKey",
+  keyType: "private",
 } as const;
 const OWN_PUBLIC_KEY = {
-  storageKey: 'ownPublicKey',
-  keyType: 'public',
+  storageKey: "ownPublicKey",
+  keyType: "public",
 } as const;
 const PEER_PUBLIC_KEY = {
-  storageKey: 'peerPublicKey',
-  keyType: 'public',
+  storageKey: "peerPublicKey",
+  keyType: "public",
 } as const;
 
 type KeyManagerType = {
   wallet: Wallet;
 };
 export class KeyManager {
-  private readonly storage: ScopedAsyncStorage;
+  private readonly storage: ScopedPreferencesStorage;
   private ownPrivateKey: CryptoKey | null = null;
   private ownPublicKey: CryptoKey | null = null;
   private peerPublicKey: CryptoKey | null = null;
   private sharedSecret: CryptoKey | null = null;
 
   constructor({ wallet }: KeyManagerType) {
-    this.storage = new ScopedAsyncStorage(wallet.name, 'KeyManager');
+    this.storage = new ScopedPreferencesStorage(wallet.name, "KeyManager");
   }
 
   async getOwnPublicKey(): Promise<CryptoKey> {
@@ -97,7 +97,10 @@ export class KeyManager {
 
     if (this.sharedSecret === null) {
       if (this.ownPrivateKey === null || this.peerPublicKey === null) return;
-      this.sharedSecret = await deriveSharedSecret(this.ownPrivateKey, this.peerPublicKey);
+      this.sharedSecret = await deriveSharedSecret(
+        this.ownPrivateKey,
+        this.peerPublicKey,
+      );
     }
   }
 
