@@ -1,6 +1,14 @@
-import type { AppMetadata, EIP1193Provider, Wallet } from '@mobile-wallet-protocol/client';
-import { ChainNotConfiguredError, type Connector, createConnector } from '@wagmi/core';
-import type { Omit } from '@wagmi/core/internal';
+import type {
+  AppMetadata,
+  EIP1193Provider,
+  Wallet,
+} from "capacitor-mwp-client/client";
+import {
+  ChainNotConfiguredError,
+  type Connector,
+  createConnector,
+} from "@wagmi/core";
+import type { Omit } from "@wagmi/core/internal";
 import {
   type AddEthereumChainParameter,
   getAddress,
@@ -9,9 +17,9 @@ import {
   type ProviderRpcError,
   SwitchChainError,
   UserRejectedRequestError,
-} from 'viem';
+} from "viem";
 
-import { toCamelCase } from './utils.js';
+import { toCamelCase } from "./utils.js";
 
 type WagmiWallet = Wallet & {
   wagmiType?: string;
@@ -19,18 +27,20 @@ type WagmiWallet = Wallet & {
 };
 
 export type CreateConnectorParameters = {
-  metadata: Omit<AppMetadata, 'chainIds'>;
+  metadata: Omit<AppMetadata, "chainIds">;
   wallet: WagmiWallet;
 };
 
-export function createConnectorFromWallet(parameters: CreateConnectorParameters) {
+export function createConnectorFromWallet(
+  parameters: CreateConnectorParameters,
+) {
   type Provider = EIP1193Provider;
 
   let walletProvider: Provider | undefined;
 
-  let accountsChanged: Connector['onAccountsChanged'] | undefined;
-  let chainChanged: Connector['onChainChanged'] | undefined;
-  let disconnect: Connector['onDisconnect'] | undefined;
+  let accountsChanged: Connector["onAccountsChanged"] | undefined;
+  let chainChanged: Connector["onChainChanged"] | undefined;
+  let disconnect: Connector["onDisconnect"] | undefined;
 
   const walletName = toCamelCase(parameters.metadata.name);
 
@@ -44,21 +54,21 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
         const provider = await this.getProvider();
         const accounts = (
           (await provider.request({
-            method: 'eth_requestAccounts',
+            method: "eth_requestAccounts",
           })) as string[]
         ).map((x) => getAddress(x));
 
         if (!accountsChanged) {
           accountsChanged = this.onAccountsChanged.bind(this);
-          provider.on('accountsChanged', accountsChanged);
+          provider.on("accountsChanged", accountsChanged);
         }
         if (!chainChanged) {
           chainChanged = this.onChainChanged.bind(this);
-          provider.on('chainChanged', chainChanged);
+          provider.on("chainChanged", chainChanged);
         }
         if (!disconnect) {
           disconnect = this.onDisconnect.bind(this);
-          provider.on('disconnect', disconnect);
+          provider.on("disconnect", disconnect);
         }
 
         // Switch to chain if provided
@@ -75,7 +85,7 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
       } catch (error) {
         if (
           /(user closed modal|accounts received is empty|user denied account|request rejected)/i.test(
-            (error as Error).message
+            (error as Error).message,
           )
         )
           throw new UserRejectedRequestError(error as Error);
@@ -86,15 +96,15 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
       const provider = await this.getProvider();
 
       if (accountsChanged) {
-        provider.removeListener('accountsChanged', accountsChanged);
+        provider.removeListener("accountsChanged", accountsChanged);
         accountsChanged = undefined;
       }
       if (chainChanged) {
-        provider.removeListener('chainChanged', chainChanged);
+        provider.removeListener("chainChanged", chainChanged);
         chainChanged = undefined;
       }
       if (disconnect) {
-        provider.removeListener('disconnect', disconnect);
+        provider.removeListener("disconnect", disconnect);
         disconnect = undefined;
       }
 
@@ -104,14 +114,14 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
       const provider = await this.getProvider();
       return (
         (await provider.request({
-          method: 'eth_accounts',
+          method: "eth_accounts",
         })) as string[]
       ).map((x) => getAddress(x));
     },
     async getChainId() {
       const provider = await this.getProvider();
       const chainId = (await provider.request({
-        method: 'eth_chainId',
+        method: "eth_chainId",
       })) as Hex;
       return Number(chainId);
     },
@@ -120,7 +130,7 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
         // Unwrapping import for Vite compatibility.
         // See: https://github.com/vitejs/vite/issues/9703
         const EIP1193Provider = await (async () =>
-          (await import('@mobile-wallet-protocol/client')).EIP1193Provider)();
+          (await import("@mobile-wallet-protocol/client")).EIP1193Provider)();
 
         walletProvider = new EIP1193Provider({
           metadata: {
@@ -149,7 +159,7 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
 
       try {
         await provider.request({
-          method: 'wallet_switchEthereumChain',
+          method: "wallet_switchEthereumChain",
           params: [{ chainId: numberToHex(chain.id) }],
         });
         return chain;
@@ -168,19 +178,21 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
             let rpcUrls: readonly string[];
             if (addEthereumChainParameter?.rpcUrls?.length)
               rpcUrls = addEthereumChainParameter.rpcUrls;
-            else rpcUrls = [chain.rpcUrls.default?.http[0] ?? ''];
+            else rpcUrls = [chain.rpcUrls.default?.http[0] ?? ""];
 
             const addEthereumChain = {
               blockExplorerUrls,
               chainId: numberToHex(chainId),
               chainName: addEthereumChainParameter?.chainName ?? chain.name,
               iconUrls: addEthereumChainParameter?.iconUrls,
-              nativeCurrency: addEthereumChainParameter?.nativeCurrency ?? chain.nativeCurrency,
+              nativeCurrency:
+                addEthereumChainParameter?.nativeCurrency ??
+                chain.nativeCurrency,
               rpcUrls,
             } satisfies AddEthereumChainParameter;
 
             await provider.request({
-              method: 'wallet_addEthereumChain',
+              method: "wallet_addEthereumChain",
               params: [addEthereumChain],
             });
 
@@ -196,28 +208,28 @@ export function createConnectorFromWallet(parameters: CreateConnectorParameters)
     onAccountsChanged(accounts) {
       if (accounts.length === 0) this.onDisconnect();
       else
-        config.emitter.emit('change', {
+        config.emitter.emit("change", {
           accounts: accounts.map((x) => getAddress(x)),
         });
     },
     onChainChanged(chain) {
       const chainId = Number(chain);
-      config.emitter.emit('change', { chainId });
+      config.emitter.emit("change", { chainId });
     },
     async onDisconnect(_error) {
-      config.emitter.emit('disconnect');
+      config.emitter.emit("disconnect");
 
       const provider = await this.getProvider();
       if (accountsChanged) {
-        provider.removeListener('accountsChanged', accountsChanged);
+        provider.removeListener("accountsChanged", accountsChanged);
         accountsChanged = undefined;
       }
       if (chainChanged) {
-        provider.removeListener('chainChanged', chainChanged);
+        provider.removeListener("chainChanged", chainChanged);
         chainChanged = undefined;
       }
       if (disconnect) {
-        provider.removeListener('disconnect', disconnect);
+        provider.removeListener("disconnect", disconnect);
         disconnect = undefined;
       }
     },

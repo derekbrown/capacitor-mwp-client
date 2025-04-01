@@ -1,5 +1,5 @@
 {
-  "name": "capacitor-mwp-client",
+  "name": "capacitor-mwp-client/client",
   "version": "1.0.0",
   "description": "Capacitor Client SDK for the Mobile Wallet Protocol",
   "keywords": [
@@ -22,7 +22,7 @@
     "url": "https://github.com/derekbrown/capacitor-mwp-client.git",
     "directory": "packages/client"
   },
-  "author": "Coinbase, Inc.",
+  "author": "Derek Brown",
   "license": "Apache-2.0",
   "scripts": {
     "test": "jest",
